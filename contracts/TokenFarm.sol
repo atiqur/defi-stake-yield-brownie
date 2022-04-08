@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@chainlink/contracts/src/interfaces/AggregatorV3Interface.sol';
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
 contract TokenFarm is Ownable {
     // stakeTokens - DONE!
@@ -46,7 +46,7 @@ contract TokenFarm is Ownable {
 
     function getUserTotalValue(address _user) public view returns (uint256) {
         uint256 totalValue = 0;
-        require(uniqueTokenStaked[_user] > 0, 'No token staked!');
+        require(uniqueTokensStaked[_user] > 0, 'No token staked!');
         for (
             uint256 allowedTokensIndex = 0;
             allowedTokensIndex < allowedTokens.length;
@@ -71,7 +71,7 @@ contract TokenFarm is Ownable {
             return 0;
         }
         (uint256 price, uint256 decimals) = getTokenValue(_token);
-        return ((stakingBalance[token][user] * price) / (10**decimals));
+        return ((stakingBalance[_token][_user] * price) / (10**decimals));
     }
 
     function getTokenValue(address _token)
@@ -99,6 +99,14 @@ contract TokenFarm is Ownable {
         if (uniqueTokensStaked[msg.sender] == 1) {
             stakers.push(msg.sender);
         }
+    }
+
+    function unstakeTokens(address _token) public {
+        uint256 balance = stakingBalance[_token][msg.sender];
+        require(balance > 0, 'Staking balance cannot be 0');
+        IERC20(_token).transfer(msg.sender, balance);
+        stakingBalance[_token][msg.sender] = 0;
+        uniqueTokensStaked[msg.sender] = uniqueTokensStaked[msg.sender] - 1;
     }
 
     function updateUniqueTokensStaked(address _user, address _token) internal {
