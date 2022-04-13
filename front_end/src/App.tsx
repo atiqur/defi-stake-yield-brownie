@@ -9,6 +9,10 @@ function App() {
     <DAppProvider
       config={{
         networks: [Kovan],
+        notifications: {
+          expirationPeriod: 1000,
+          checkInterval: 1000,
+        },
       }}
     >
       <Header />
